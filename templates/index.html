@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA==" crossorigin="*"></script>    
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+  <script>
+    function takeScreenshot(){
+      console.log("Trying to get screenshot...")
+      $.get("/screenshot", function(data) {
+        console.log(data);
+      }) 
+    }
+  </script>
+  <body>
+    <h1>Live streaming</h1>
+    <button id="screenshotButon" onclick="takeScreenshot()">Screenshot</button>
+    <div>
+
+        <img src="{{ url_for('video') }}" width="50%"/>
+    </div>
+            
+    </body>
+
+
+</html>
