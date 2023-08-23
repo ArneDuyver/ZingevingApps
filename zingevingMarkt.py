@@ -3,7 +3,10 @@ import cv2.aruco as aruco
 import numpy as np
 import pyautogui
 
-id_marker = 7
+id_markerTopLeft = 7
+id_markerTopRight = 8
+id_markerBottomLeft = 9
+id_markerBottomRight = 10
 
 aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_4X4_50)
 parameters = aruco.DetectorParameters()
@@ -40,9 +43,15 @@ while True:
     
     corners, ids, rejected = detector.detectMarkers(image=gray)
     # print(corners)
-    if ids is not None and ids[0] == id_marker:
-        # aruco.drawDetectedMarkers(frame, corners)
+    if ids is not None and ids[0] == id_markerTopLeft:
+        aruco.drawDetectedMarkers(frame, corners)
         frame = augmentation(np.array(corners)[0], frame, image_augment)
+    elif ids is not None and ids[0] == id_markerTopRight:
+        aruco.drawDetectedMarkers(frame, corners)
+    elif ids is not None and ids[0] == id_markerBottomLeft:
+        aruco.drawDetectedMarkers(frame, corners)
+    elif ids is not None and ids[0] == id_markerBottomRight:
+        aruco.drawDetectedMarkers(frame, corners)
 
     cv2.imshow('input', frame)
     

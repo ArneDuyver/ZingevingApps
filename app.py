@@ -6,13 +6,17 @@ import pyautogui
 
 app=Flask(__name__)
 camera=cv2.VideoCapture(0)
-id_marker = 7
 
 aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_4X4_50)
 parameters = aruco.DetectorParameters()
 detector = aruco.ArucoDetector(aruco_dict, parameters)
 
-image_augment = cv2.imread("lowpolyantilope2.png")
+imagestr = "lowpolyantilope2.png"
+savestr = "screenshot.png"
+imagestr2 = "Picture1.png"
+
+image_augment = cv2.imread(imagestr, cv2.IMREAD_UNCHANGED)
+image_augment2 = cv2.imread(imagestr2, cv2.IMREAD_UNCHANGED)
 
 def augmentation(bbox, img, img_augment):
     top_left = bbox[0][0][0], bbox[0][0][1]
@@ -26,10 +30,15 @@ def augmentation(bbox, img, img_augment):
 
     matrix, _ = cv2.findHomography(points_2,points_1)
     image_out = cv2.warpPerspective(img_augment,matrix,(img.shape[1], img.shape[0]))
-    cv2.fillConvexPoly(img, points_1.astype(int), (0,0,0))
-    image_out = img + image_out
+    # TODO just do this as a background and then layer the rest on top
+    cv2.fillConvexPoly(img, points_1.astype(int), (255,255,255))
+    # image_out = img + image_out
 
-    return image_out
+    imga = cv2.cvtColor(img, cv2.COLOR_RGB2RGBA)
+    image_outa = cv2.cvtColor(image_out, cv2.COLOR_RGB2RGBA)
+    image_outOut = imga + image_outa
+
+    return image_outOut
 
 
 def generate_frames():
@@ -37,19 +46,32 @@ def generate_frames():
             
         ## read the camera frame
         success,frame=camera.read()
+        frame = cv2.cvtColor(frame, cv2.COLOR_RGB2RGBA)
+        # frame[:, :, 3] = 255
         frame = cv2.flip(frame, 1)
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         corners, ids, rejected = detector.detectMarkers(image=gray)
-        if ids is not None and ids[0] == id_marker:
-            frame = augmentation(np.array(corners)[0], frame, image_augment)
+        arr =  np.empty(shape = [1,4,2])
+        if ids is not None and len(ids) == 4:
+            for i in range(0,3):
+                if ids is not None and ids[i] == 7:
+                    arr[0][1] = np.array(corners)[i][0][1]
+                if ids is not None and ids[i] == 8:
+                    arr[0][0] = np.array(corners)[i][0][0]
+                if ids is not None and ids[i] == 9:
+                    arr[0][2] = np.array(corners)[i][0][2]
+                if ids is not None and ids[i] == 10:
+                    arr[0][3] = np.array(corners)[i][0][3]
+            frame = augmentation(arr, frame, image_augment)
+            frame = augmentation(arr, frame, image_augment2)
         if not success:
             break
         else:
-            ret,buffer=cv2.imencode('.jpg',frame)
+            ret,buffer=cv2.imencode('.png',frame)
             frame=buffer.tobytes()
 
         yield(b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+                   b'Content-Type: image/png\r\n\r\n' + frame + b'\r\n')
 
 
 @app.route('/')
@@ -64,7 +86,7 @@ def video():
 def backend():
     cropped_screenshot = pyautogui.screenshot(region=(10,230,580,500))
     cropped_screenshot = cv2.cvtColor(np.array(cropped_screenshot), cv2.COLOR_RGB2BGR)
-    cv2.imwrite("screenshot.png", cropped_screenshot)
+    cv2.imwrite(savestr, cropped_screenshot)
     return "SMILLLEEEEE!"
 
 if __name__=="__main__":
